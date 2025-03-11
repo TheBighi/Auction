@@ -73,23 +73,29 @@ def login():
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
 
-        # Check if the user exists
-        cursor.execute("SELECT id FROM users WHERE username = ? AND password = ?", (username, password))
+        # Check if the username exists
+        cursor.execute("SELECT id, password FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
 
         if user:
-            session['user_id'] = user[0]  # Store user ID in session
+            stored_password = user[1]
+            if stored_password == password:
+                session['user_id'] = user[0]  # Correct password, login successful
+                conn.close()
+                return redirect(f'/account/{session["user_id"]}')
+            else:
+                conn.close()
+                return "Invalid password. Login denied.", 403  # Deny access if password is wrong
         else:
-            # Auto-register the user
+            # Auto-register the user if the username does not exist
             new_id = generate_user_id()
             creation_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute("INSERT INTO users (id, username, password, creation_time) VALUES (?, ?, ?, ?)", 
                            (new_id, username, password, creation_time))
             conn.commit()
             session['user_id'] = new_id
-
-        conn.close()
-        return redirect(f'/account/{session["user_id"]}')
+            conn.close()
+            return redirect(f'/account/{session["user_id"]}')
 
     return render_template('login.html')
 
