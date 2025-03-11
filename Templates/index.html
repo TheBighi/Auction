@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BidBlitz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <h1>BidBlitz</h1>
+        <nav>
+          <a href="/home">Home</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        
+        {% if session['user_id'] %}
+            <a href="http://127.0.0.1:8080/account/{{ session['user_id'] }}">
+                <img src="{{ url_for('static', filename='img/profile.png') }}" alt="Profile Picture" class="profile-pic">
+            </a>
+            <a href="/logout" class="logout-button">Logout</a>
+        {% else %}
+            <a href="/login" class="login-button">Login</a>
+        {% endif %}
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
