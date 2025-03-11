@@ -20,7 +20,7 @@ def user_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             password TEXT NOT NULL,
-            creation_time DATETIME NOT NULL,
+            creation_time DATETIME NOT NULL
         )
     ''')
 
