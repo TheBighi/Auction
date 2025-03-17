@@ -52,16 +52,17 @@ def init_db():
     cursor = conn.cursor()
     
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS auctions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user TEXT NOT NULL,
-            item_name TEXT NOT NULL,
-            start_time DATETIME NOT NULL,
-            end_time DATETIME NOT NULL,
-            starting_bid REAL NOT NULL,
-            current_bid REAL
-        )
-    ''')
+            CREATE TABLE IF NOT EXISTS auctions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                creator INTEGER NOT NULL,
+                item_name TEXT NOT NULL,
+                start_time DATETIME NOT NULL,
+                end_time DATETIME NOT NULL,
+                starting_bid REAL NOT NULL,
+                current_bid REAL,
+                FOREIGN KEY (creator) REFERENCES users(id)
+            )
+        ''')
 
     conn.commit()
     cursor.close()
@@ -78,21 +79,21 @@ def login():
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
 
-        # Check if the username exists
+        # username exist?
         cursor.execute("SELECT id, password FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
 
         if user:
             stored_password = user[1]
             if stored_password == password:
-                session['user_id'] = user[0]  # Correct password, login successful
+                session['user_id'] = user[0]
                 conn.close()
                 return redirect(f'/account/{session["user_id"]}')
             else:
                 conn.close()
-                return "Invalid password. Login denied.", 403  # Deny access if password is wrong
+                return "Invalid password. Login denied.", 403  # 403 kui vale password
         else:
-            # Auto-register the user if the username does not exist
+            # reg username if not exist
             new_id = generate_user_id()
             creation_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute("INSERT INTO users (id, username, password, creation_time) VALUES (?, ?, ?, ?)", 
@@ -107,7 +108,7 @@ def login():
 @app.route('/create', methods=['GET', 'POST'])
 def create():
     if request.method == 'POST':
-        # Get the current logged-in user from the session
+        # current userid getter
         creator = session.get('user_id')
         if not creator:
             return "You need to be logged in to create an auction.", 403
@@ -118,8 +119,6 @@ def create():
 
         conn = sqlite3.connect('auctions.db')
         cursor = conn.cursor()
-
-        # Create the auction in the database
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS auctions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
