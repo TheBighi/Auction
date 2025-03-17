@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+        body {
+            
+        }
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Montserrat', sans-serif;
             background-color: #f4f4f4;
         }
 
@@ -59,6 +64,11 @@
             color: #333;
             font-size: 18px;
         }
+        a {
+            color: rgb(0, 0, 0);
+            text-decoration: none;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -73,7 +83,11 @@
             <button type="submit">Submit</button>
         </form>
     {% else %}
-        <h1>You need to be logged in to create an auction</h1>
+        
+        <div>
+            <h1>You need to be logged in to create an auction</h1>
+            <a href="/">← Back to Home</a>
+        </div>
     {% endif %}
 </body>
 </html>
