@@ -44,9 +44,23 @@ def contact():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
 @app.route('/auctions')
 def auctions():
-    return render_template('auctions.html')
+    conn = sqlite3.connect("auctions.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, item_name, start_time, end_time, current_bid FROM auctions")
+    auctions = cursor.fetchall()
+    conn.close()
+
+    # Convert data into a list of dictionaries
+    auction_list = [
+        {"id": row[0], "item_name": row[1], "start_time": row[2], "end_time": row[3], "current_bid": row[4]}
+        for row in auctions
+    ]
+
+    return render_template('auctions.html', auctions=auction_list)
+
 def init_db():
     conn = sqlite3.connect('auctions.db')
     cursor = conn.cursor()
@@ -148,6 +162,7 @@ def create():
 def logout():
     session.clear()
     return redirect('/')
+
 @app.route('/account/<int:user_id>')
 def account(user_id):
     conn = sqlite3.connect('users.db')
@@ -160,6 +175,29 @@ def account(user_id):
         return "User not found", 404
 
     return render_template('account.html', username=user[0], creation_time=user[1], user_id=user_id)
+
+def get_auction(auction_id):
+    conn = sqlite3.connect("auctions.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT item_name, start_time, end_time, current_bid FROM auctions WHERE id = ?", (auction_id,))
+    auction = cursor.fetchone()
+    conn.close()
+
+    if auction:
+        return {
+            "item_name": auction[0],
+            "start_time": auction[1],
+            "end_time": auction[2],
+            "current_bid": auction[3]
+        }
+    return None
+
+@app.route('/auction/<int:auction_id>')
+def auction_page(auction_id):
+    auction = get_auction(auction_id)
+    if auction:
+        return render_template("auction.html", auction=auction)
+    return "Auction not found", 404
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
