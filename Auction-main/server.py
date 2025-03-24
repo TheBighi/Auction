@@ -199,5 +199,34 @@ def auction_page(auction_id):
         return render_template("auction.html", auction=auction)
     return "Auction not found", 404
 
+@app.route('/auction/<int:auction_id>', methods=['GET', 'POST'])
+def auction_detail(auction_id):  # Renamed from auction_page
+    auction = get_auction(auction_id)
+
+    if not auction:
+        return "Auction not found", 404
+
+    if request.method == 'POST':
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+
+        new_bid = float(request.form['bid'])
+
+        if new_bid <= auction['current_bid']:
+            return "Bid must be higher than the current bid.", 400
+
+        conn = sqlite3.connect("auctions.db")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE auctions SET current_bid = ? WHERE id = ?", (new_bid, auction_id))
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('auction_detail', auction_id=auction_id))
+
+    return render_template("auction.html", auction=auction)
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
+
