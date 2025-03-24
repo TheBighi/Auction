@@ -170,11 +170,29 @@ def account(user_id):
     cursor.execute("SELECT username, creation_time FROM users WHERE id = ?", (user_id,))
     user = cursor.fetchone()
     conn.close()
-
+    
     if not user:
         return "User not found", 404
 
-    return render_template('account.html', username=user[0], creation_time=user[1], user_id=user_id)
+    # Fetch only the auctions created by the user
+    conn = sqlite3.connect("auctions.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, item_name, start_time, end_time, current_bid FROM auctions WHERE creator = ?", (user_id,))
+    user_auctions = cursor.fetchall()
+    conn.close()
+
+    auction_data = [
+        {"id": row[0], "item_name": row[1], "start_time": row[2], "end_time": row[3], "current_bid": row[4]}
+        for row in user_auctions
+    ]
+
+    return render_template(
+        'account.html', 
+        username=user[0], 
+        creation_time=user[1], 
+        user_id=user_id, 
+        auction_data=auction_data
+    )
 
 def get_auction(auction_id):
     conn = sqlite3.connect("auctions.db")
@@ -191,6 +209,7 @@ def get_auction(auction_id):
             "current_bid": auction[3]
         }
     return None
+
 
 @app.route('/auction/<int:auction_id>')
 def auction_page(auction_id):
@@ -229,4 +248,3 @@ def auction_detail(auction_id):  # Renamed from auction_page
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
-
