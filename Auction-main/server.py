@@ -75,6 +75,7 @@ def init_db():
                 end_time DATETIME NOT NULL,
                 starting_bid REAL NOT NULL,
                 current_bid REAL,
+                current_bidder TEXT NOT NULL,
                 FOREIGN KEY (creator) REFERENCES users(id)
             )
         ''')
@@ -143,14 +144,15 @@ def create():
                 end_time DATETIME NOT NULL,
                 starting_bid REAL NOT NULL,
                 current_bid REAL,
+                current_bidder TEXT NOT NULL,
                 FOREIGN KEY (creator) REFERENCES users(id)
             )
         ''')
 
         cursor.execute('''
-            INSERT INTO auctions (creator, item_name, start_time, end_time, starting_bid, current_bid)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (creator, itemname, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), enddate, startbid, startbid))
+            INSERT INTO auctions (creator, item_name, start_time, end_time, starting_bid, current_bid, current_bidder)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (creator, itemname, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), enddate, startbid, startbid, 0))
 
         conn.commit()
         conn.close()
@@ -261,8 +263,8 @@ def auction_detail(auction_id):  # Renamed from auction_page
 
         conn = sqlite3.connect("auctions.db")
         cursor = conn.cursor()
-
         cursor.execute("UPDATE auctions SET current_bid = ? WHERE id = ?", (new_bid, auction_id))
+        cursor.execute("UPDATE auctions SET current_bidder = ? WHERE id = ?", (user_id, auction_id))
         conn.commit()
         conn.close()
 
@@ -298,8 +300,6 @@ def delete_auction(auction_id):
     conn.close()
 
     return redirect(url_for('auctions'))
-
-
-print()
+    
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
