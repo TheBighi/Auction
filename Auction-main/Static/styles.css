@@ -78,3 +78,61 @@ body {
 .logout-button:hover {
   background-color: #000000;
 }
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.navbar {
+  width: 100%;
+  background-color: #333;
+  padding: 20px;
+  color: white;
+  text-align: center;
+}
+
+.navbar h1 {
+  margin: 0;
+}
+
+.user-menu, .login-button {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.main-page-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 100px; /* Space between navbar and links */
+  width: 100%;
+  text-align: center;
+}
+
+.menu-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 100px;
+  background-color: #333;
+  color: white;
+  text-decoration: none;
+  font-size: 1.5em;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-box:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
