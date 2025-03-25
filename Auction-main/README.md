@@ -1,3 +1,0 @@
-# Auction
-
-stuff happen soon!!!
