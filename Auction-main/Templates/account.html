@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ username }}'s Account</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin: 0;
+            padding-top: 20px;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+        }
+
+        .auction-container {
+            display: flex;
+            flex-wrap: wrap;  /* Allows wrapping if there are too many items */
+            justify-content: center;  /* Centers the items hor izontally */
+            gap: 20px; /* Adds spacing between auction boxes */
+            margin-top: 20px;
+            width: 80%; /* Ensures it doesn't stretch too wide */
+        }
+
+        .auction-item {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            width: 250px; /* Controls box width */
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .auction-item:hover {
+            transform: scale(1.05); /* Slight zoom effect when hovering */
+        }
+
+        .auction-item h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .auction-item p {
+            font-size: 14px;
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .auction-item a {
+            display: block;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            padding: 8px;
+            margin-top: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .auction-item a:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>{{ username }}</h1>
+    <img src="{{ url_for('static', filename='img/profile.png') }}">
+    <p>Account Created: {{ creation_time }}</p>
+    <p>Account Unique ID: {{ user_id }}</p>
+    <h2>This account auctions:</h2>
+
+    <div class="auction-container">  <!-- Added container -->
+        {% for auction in auction_data %}
+        <div class="auction-item">
+            <h2>{{ auction.item_name }}</h2>
+            <p><strong>Start Time:</strong> {{ auction.start_time }}</p>
+            <p><strong>End Time:</strong> {{ auction.end_time }}</p>
+            <p><strong>Current Bid:</strong> ${{ auction.current_bid }}</p>
+            <a href="{{ url_for('auction_page', auction_id=auction.id) }}">View Auction</a>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="/" style="margin-top: 20px; text-decoration: none; color: #333; font-weight: bold;">← Back to Home</a>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+        body {
+            
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #7e7e7e;
+            outline: none;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #000000;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #6e6e6e;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 18px;
+        }
+        a {
+            color: rgb(0, 0, 0);
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    {% if session['user_id'] %}
+        <form method="POST">
+            <p>Item name</p>
+            <input type="text" name="itemname" placeholder="Item name" required>
+            <p>Auction end date</p>
+            <input type="date" name="enddate" required>
+            <p>Starting bid</p>
+            <input type="number" name="startbid" placeholder="Starting bid" required>
+            <button type="submit">Submit</button>
+        </form>
+    {% else %}
+        
+        <div>
+            <h1>You need to be logged in to create an auction</h1>
+            <a href="/">← Back to Home</a>
+        </div>
+    {% endif %}
+</body>
+</html>
