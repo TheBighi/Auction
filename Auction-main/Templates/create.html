@@ -73,18 +73,21 @@
 </head>
 <body>
     {% if session['user_id'] %}
-        <form method="POST">
-            <p>Item name</p>
-            <input type="text" name="itemname" placeholder="Item name" required>
-            <p>Auction end date</p>
-            <input type="date" name="enddate" required>
-            <p>Starting bid</p>
-            <input type="number" name="startbid" placeholder="Starting bid" required>
-            <button type="submit">Submit</button>
-        </form>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <form method="POST">
+                <p>Item name</p>
+                <input type="text" name="itemname" placeholder="Item name" required>
+                <p>Auction end date</p>
+                <input type="date" name="enddate" required>
+                <p>Starting bid</p>
+                <input type="number" name="startbid" placeholder="Starting bid" required>
+                <button type="submit">Submit</button>
+            </form>
+            
+            <a href="/" style="margin-top: 20px; text-decoration: none; color: #333; font-weight: bold;">← Back to Home</a>
+        </div>
     {% else %}
-        
-        <div>
+        <div style="text-align: center;">
             <h1>You need to be logged in to create an auction</h1>
             <a href="/">← Back to Home</a>
         </div>
