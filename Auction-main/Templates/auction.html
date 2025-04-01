@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ auction.item_name }} - Auction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
@@ -98,10 +99,23 @@
         .bid-form button:hover {
             background: #0056b3;
         }
+        #delbut {
+            background-color: red;
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
+        {% if session['user_id'] %}
+        <div class="user-menu">
+            <a href="http://127.0.0.1:8080/account/{{ session['user_id'] }}">
+                <img src="{{ url_for('static', filename='img/profile.png') }}" alt="Profile Picture" class="profile-pic">
+            </a>
+            <a href="/logout" class="logout-button">Logout</a>
+        </div>
+        {% else %}
+            <a href="/login" class="login-button">Login</a>
+        {% endif %}
         <div class="navbar-content">
             <h1>{{ auction.item_name }}</h1>
             <a href="/auctions">← Back to Auctions</a>
@@ -111,6 +125,10 @@
     <div class="container">
         <div class="auction-details">
             <h2>{{ auction.item_name }}</h2>
+            <p>
+                <strong>Auction creator:</strong> 
+                <a href="/account/{{ creator }}">{{ creator }}</a>
+            </p>
             <p><strong>Start Time:</strong> {{ auction.start_time }}</p>
             <p><strong>End Time:</strong> {{ auction.end_time }}</p>
             <p><strong>Current Bid:</strong> ${{ auction.current_bid }}</p>
@@ -123,14 +141,14 @@
                 <label for="bid">Your Bid ($):</label>
                 <input type="number" id="bid" name="bid" step="0.01" required>
                 <button type="submit">Submit Bid</button>
+                {% if user_id == creator %}
+                    <form action="{{ url_for('delete_auction', auction_id=auction.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this auction?');">
+                        <button type="submit" id="delbut">Delete Auction</button>
+                    </form>
+                {% endif %}
             </form>
         </div>
     
-        {% if user_id == creator %}
-        <form action="{{ url_for('delete_auction', auction_id=auction.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this auction?');">
-            <button type="submit">Delete Auction</button>
-        </form>
-        {% endif %}
     {% else %}
         <p><a href="{{ url_for('login') }}">Log in</a> to place a bid.</p>
     {% endif %}
