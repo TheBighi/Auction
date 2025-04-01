@@ -12,7 +12,7 @@
         
         {% if session['user_id'] %}
             <div class="user-menu">
-                <a href="http://127.0.0.1:8080/account/{{ session['user_id'] }}">
+                <a href="http://{{ request.host }}/account/{{ session['user_id'] }}">
                     <img src="{{ url_for('static', filename='img/profile.png') }}" alt="Profile Picture" class="profile-pic">
                 </a>
                 <a href="/logout" class="logout-button">Logout</a>
