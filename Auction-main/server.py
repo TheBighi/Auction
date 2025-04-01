@@ -199,17 +199,18 @@ def account(user_id):
 def get_auction(auction_id):
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT id, item_name, start_time, end_time, current_bid FROM auctions WHERE id = ?", (auction_id,))
+    cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid FROM auctions WHERE id = ?", (auction_id,))
     auction = cursor.fetchone()
     conn.close()
 
     if auction:
         return {
             "id": auction[0],  # Include id here
-            "item_name": auction[1],
-            "start_time": auction[2],
-            "end_time": auction[3],
-            "current_bid": auction[4]
+            "creator": auction[1],
+            "item_name": auction[2],
+            "start_time": auction[3],
+            "end_time": auction[4],
+            "current_bid": auction[5]
         }
     return None
 
