@@ -46,15 +46,52 @@ def contact():
 def about():
     return render_template('about.html')
 
+def close_auctions():
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    conn = sqlite3.connect('auctions.db')
+    cursor = conn.cursor()
+
+    # Fetch auctions that ended and don't have a winner yet
+    cursor.execute('''
+        SELECT id, current_bidder, end_time FROM auctions
+        WHERE end_time <= ? AND (bid_winner IS NULL OR bid_winner = '')
+    ''', (now,))
+
+    auctions_to_close = cursor.fetchall()
+
+    for auction_id, current_bidder, end_time in auctions_to_close:
+        # If no bidder, set winner as "No winner"
+        if current_bidder and current_bidder != '0':
+            cursor.execute('''
+                UPDATE auctions
+                SET bid_winner = ?
+                WHERE id = ?
+            ''', (current_bidder, auction_id))
+        else:
+            cursor.execute('''
+                UPDATE auctions
+                SET bid_winner = 'No winner'
+                WHERE id = ?
+            ''', (auction_id,))
+        
+    conn.commit()
+    conn.close()
+
+    return len(auctions_to_close)
+
+
+
 @app.route('/auctions')
 def auctions():
+    close_auctions()
+
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
     cursor.execute("SELECT id, item_name, start_time, end_time, current_bid FROM auctions")
     auctions = cursor.fetchall()
     conn.close()
 
-    # Convert data into a list of dictionaries
     auction_list = [
         {"id": row[0], "item_name": row[1], "start_time": row[2], "end_time": row[3], "current_bid": row[4]}
         for row in auctions
@@ -76,6 +113,7 @@ def init_db():
                 starting_bid REAL NOT NULL,
                 current_bid REAL,
                 current_bidder TEXT NOT NULL,
+                bid_winner TEXT DEFAULT 'TBD',
                 FOREIGN KEY (creator) REFERENCES users(id)
             )
         ''')
@@ -124,35 +162,24 @@ def login():
 @app.route('/create', methods=['GET', 'POST'])
 def create():
     if request.method == 'POST':
-        # current userid getter
         creator = session.get('user_id')
         if not creator:
             return "You need to be logged in to create an auction.", 403
 
         itemname = request.form['itemname']
-        enddate = request.form['enddate']
+        endhours = float(request.form['endhours'])
         startbid = request.form['startbid']
+
+        start_time = datetime.datetime.now()
+        end_time = start_time + datetime.timedelta(hours=endhours)
 
         conn = sqlite3.connect('auctions.db')
         cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS auctions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                creator INTEGER NOT NULL,
-                item_name TEXT NOT NULL,
-                start_time DATETIME NOT NULL,
-                end_time DATETIME NOT NULL,
-                starting_bid REAL NOT NULL,
-                current_bid REAL,
-                current_bidder TEXT NOT NULL,
-                FOREIGN KEY (creator) REFERENCES users(id)
-            )
-        ''')
 
         cursor.execute('''
             INSERT INTO auctions (creator, item_name, start_time, end_time, starting_bid, current_bid, current_bidder)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (creator, itemname, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), enddate, startbid, startbid, 0))
+        ''', (creator, itemname, start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S'), startbid, startbid, 0))
 
         conn.commit()
         conn.close()
@@ -160,6 +187,7 @@ def create():
         return redirect(f'/')
 
     return render_template('create.html')
+
 
 @app.route('/logout')
 def logout():
@@ -177,7 +205,6 @@ def account(user_id):
     if not user:
         return "User not found", 404
 
-    # Fetch only the auctions created by the user
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
     cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid FROM auctions WHERE creator = ?", (user_id,))
@@ -199,7 +226,7 @@ def account(user_id):
 def get_auction(auction_id):
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid FROM auctions WHERE id = ?", (auction_id,))
+    cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid, current_bidder FROM auctions WHERE id = ?", (auction_id,))
     auction = cursor.fetchone()
     conn.close()
 
@@ -210,13 +237,14 @@ def get_auction(auction_id):
             "item_name": auction[2],
             "start_time": auction[3],
             "end_time": auction[4],
-            "current_bid": auction[5]
+            "current_bid": auction[5],
+            "current_bidder": auction[6]
         }
     return None
 
 @app.route('/auction/<int:auction_id>')
 def auction_page(auction_id):
-    user_id = session.get('user_id')  # Use .get() to avoid KeyError if not set
+    user_id = session.get('user_id') 
     print("A")
     
     auction = get_auction(auction_id)
@@ -225,11 +253,12 @@ def auction_page(auction_id):
     
     cursor.execute("SELECT creator FROM auctions WHERE id = ?", (auction_id,))
     creator = cursor.fetchone()
-    
+    cursor.execute("SELECT current_bidder FROM auctions WHERE id = ?", (auction_id,))
+    current_bidder = cursor.fetchone()
     conn.close()
 
     if creator:
-        creator = creator[0]  # Extract value from tuple
+        creator = creator[0]  # Etuple
         print(f"Creator: {creator}")
     else:
         print("No data found")
@@ -238,12 +267,15 @@ def auction_page(auction_id):
     print(f"Session ID: {user_id}")
 
     if auction:
-        return render_template("auction.html", auction=auction, creator=creator, user_id=user_id)
+        return render_template("auction.html", auction=auction, creator=creator, user_id=user_id, current_bidder=current_bidder)
     
-    return "Auction not found", 404
+    return '''
+    Auction not found or it has been deleted.<br>
+    <a href="/">Go back to home page</a>
+    ''', 404
 
 @app.route('/auction/<int:auction_id>', methods=['GET', 'POST'])
-def auction_detail(auction_id):  # Renamed from auction_page
+def auction_detail(auction_id):
     print("B")
     auction = get_auction(auction_id)
     user_id = session['user_id']
@@ -283,7 +315,6 @@ def delete_auction(auction_id):
     conn = sqlite3.connect('auctions.db')
     cursor = conn.cursor()
 
-    # Check if the auction exists and if the current user is the creator
     cursor.execute("SELECT creator FROM auctions WHERE id = ?", (auction_id,))
     auction = cursor.fetchone()
 
@@ -295,7 +326,7 @@ def delete_auction(auction_id):
         conn.close()
         return "Unauthorized", 403
 
-    # Delete the auction
+    # Del auction
     cursor.execute("DELETE FROM auctions WHERE id = ?", (auction_id,))
     conn.commit()
     conn.close()
