@@ -55,14 +55,16 @@ def close_auctions():
     # Fetch auctions that ended and don't have a winner yet
     cursor.execute('''
         SELECT id, current_bidder, end_time FROM auctions
-        WHERE end_time <= ? AND (bid_winner IS NULL OR bid_winner = '')
+        WHERE end_time <= ? AND bid_winner = "TBD"
     ''', (now,))
 
     auctions_to_close = cursor.fetchall()
-
+    print(auctions_to_close)
     for auction_id, current_bidder, end_time in auctions_to_close:
+        print("l")
         # If no bidder, set winner as "No winner"
         if current_bidder and current_bidder != '0':
+            print("ll")
             cursor.execute('''
                 UPDATE auctions
                 SET bid_winner = ?
