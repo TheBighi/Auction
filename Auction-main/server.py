@@ -84,13 +84,16 @@ def close_auctions():
     return len(auctions_to_close)
 
 def runtask():
-    while True:
-        time.sleep(2)
-        close_auction()
+    with app.app_context():
+        while True:
+            time.sleep(2)
+            close_auctions()
 
-@app.before_first_request
 def start_periodic_task():
-    threading.Thread(target=runtask, daemon=True).start()
+    thread = threading.Thread(target=runtask, daemon=True)
+    thread.start()
+
+start_periodic_task()
 
 
 @app.route('/auctions')
