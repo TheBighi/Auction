@@ -5,6 +5,7 @@ import random
 import time
 from flask_socketio import SocketIO, emit
 import datetime
+import threading
 
 
 def generate_user_id():
@@ -82,12 +83,18 @@ def close_auctions():
 
     return len(auctions_to_close)
 
+def runtask():
+    while True:
+        time.sleep(2)
+        close_auction()
+
+@app.before_first_request
+def start_periodic_task():
+    threading.Thread(target=runtask, daemon=True).start()
 
 
 @app.route('/auctions')
 def auctions():
-    close_auctions()
-
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
     cursor.execute("SELECT id, item_name, start_time, end_time, current_bid FROM auctions")
