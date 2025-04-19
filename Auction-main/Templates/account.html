@@ -75,20 +75,21 @@
     <img src="{{ url_for('static', filename='img/profile.png') }}">
     <p>Account Created: {{ creation_time }}</p>
     <p>Account Unique ID: {{ user_id }}</p>
-    <h2>This account auctions:</h2>
 
-    <div class="auction-container">  <!-- Added container -->
-        {% for auction in auction_data %}
-        <div class="auction-item">
-            <h2>{{ auction.item_name }}</h2>
-            <p><strong>Start Time:</strong> {{ auction.start_time }}</p>
-            <p><strong>End Time:</strong> {{ auction.end_time }}</p>
-            <p><strong>Current Bid:</strong> ${{ auction.current_bid }}</p>
-            <a href="{{ url_for('auction_page', auction_id=auction.id) }}">View Auction</a>
+    {% if auction_data %}
+        <h2>This account auctions:</h2>
+        <div class="auction-container">
+            {% for auction in auction_data %}
+            <div class="auction-item">
+                <h2>{{ auction.item_name }}</h2>
+                <p><strong>Start Time:</strong> {{ auction.start_time }}</p>
+                <p><strong>End Time:</strong> {{ auction.end_time }}</p>
+                <p><strong>Current Bid:</strong> ${{ auction.current_bid }}</p>
+                <a href="{{ url_for('auction_page', auction_id=auction.id) }}">View Auction</a>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+    {% endif %}
     <a href="/" style="margin-top: 20px; text-decoration: none; color: #333; font-weight: bold;">← Back to Home</a>
-
 </body>
 </html>
