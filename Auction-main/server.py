@@ -60,7 +60,6 @@ def close_auctions():
     ''', (now,))
 
     auctions_to_close = cursor.fetchall()
-    print(auctions_to_close)
     for auction_id, current_bidder, end_time in auctions_to_close:
         print("l")
         # If no bidder, set winner as "No winner"
@@ -217,40 +216,64 @@ def account(user_id):
     if not user:
         return "User not found", 404
 
+    # Get auctions created by this user
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
     cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid FROM auctions WHERE creator = ?", (user_id,))
     user_auctions = cursor.fetchall()
+    
+    # Get auctions won by this user
+    cursor.execute("""
+        SELECT id, creator, item_name, start_time, end_time, current_bid
+        FROM auctions 
+        WHERE bid_winner = ? AND bid_winner != 'TBD' AND bid_winner != 'No winner'
+    """, (str(user_id),))
+    won_auctions = cursor.fetchall()
+    
     conn.close()
 
     auction_data = [
-        {"id": row[0], "creator": row[1],"item_name": row[2], "start_time": row[3], "end_time": row[4], "current_bid": row[5]}
+        {"id": row[0], "creator": row[1], "item_name": row[2], "start_time": row[3], "end_time": row[4], "current_bid": row[5]}
         for row in user_auctions
     ]
+    
+    won_auction_data = [
+        {"id": row[0], "creator": row[1], "item_name": row[2], "start_time": row[3], "end_time": row[4], "current_bid": row[5]}
+        for row in won_auctions
+    ]
+    
     return render_template(
         'account.html', 
         username=user[0], 
         creation_time=user[1], 
         user_id=user_id, 
-        auction_data=auction_data
+        auction_data=auction_data,
+        won_auction_data=won_auction_data
     )
 
 def get_auction(auction_id):
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid, current_bidder FROM auctions WHERE id = ?", (auction_id,))
+    cursor.execute("SELECT id, creator, item_name, start_time, end_time, current_bid, current_bidder, bid_winner FROM auctions WHERE id = ?", (auction_id,))
     auction = cursor.fetchone()
     conn.close()
 
     if auction:
+        # Convert end_time string to datetime object for comparison
+        end_time = datetime.datetime.strptime(auction[4], '%Y-%m-%d %H:%M:%S')
+        now = datetime.datetime.now()
+        is_ended = now > end_time
+        
         return {
-            "id": auction[0],  # Include id here
+            "id": auction[0],
             "creator": auction[1],
             "item_name": auction[2],
             "start_time": auction[3],
             "end_time": auction[4],
             "current_bid": auction[5],
-            "current_bidder": auction[6]
+            "current_bidder": auction[6],
+            "bid_winner": auction[7],
+            "is_ended": is_ended
         }
     return None
 
@@ -290,16 +313,19 @@ def auction_page(auction_id):
 def auction_detail(auction_id):
     print("B")
     auction = get_auction(auction_id)
-    user_id = session['user_id']
+    user_id = session.get('user_id')
 
     if not auction:
         return "Auction not found", 404
-
 
     if request.method == 'POST':
         user_id = session.get('user_id')
         if not user_id:
             return redirect(url_for('login'))
+            
+        # Check if auction has ended
+        if auction['is_ended']:
+            return "This auction has ended. Bidding is no longer allowed.", 400
 
         new_bid = float(request.form['bid'])
 

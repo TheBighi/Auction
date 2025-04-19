@@ -21,7 +21,7 @@
         .auction-container {
             display: flex;
             flex-wrap: wrap;  /* Allows wrapping if there are too many items */
-            justify-content: center;  /* Centers the items hor izontally */
+            justify-content: center;  /* Centers the items horizontally */
             gap: 20px; /* Adds spacing between auction boxes */
             margin-top: 20px;
             width: 80%; /* Ensures it doesn't stretch too wide */
@@ -68,7 +68,76 @@
             background-color: #0056b3;
         }
 
+        /* Dropdown styles */
+        .dropdown-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 250px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-btn:hover {
+            background-color: #007bff;
+        }
+
+        .dropdown-btn:after {
+            content: '\25BC';
+            margin-left: 10px;
+        }
+
+        .dropdown-btn.active:after {
+            content: '\25B2';
+        }
+
+        .dropdown-content {
+            display: none;
+            width: 80%;
+            margin-top: 10px;
+        }
+
+        .won-auctions-title {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+
+        .badge {
+            background-color: #ffeb3b;
+            color: #333;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .no-auctions-message {
+            color: #757575;
+            font-style: italic;
+        }
     </style>
+    <script>
+        function toggleWonAuctions() {
+            const content = document.getElementById("wonAuctionsDropdown");
+            const button = document.querySelector(".dropdown-btn");
+            
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                button.classList.remove("active");
+            } else {
+                content.style.display = "block";
+                button.classList.add("active");
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>{{ username }}</h1>
@@ -90,6 +159,35 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    <!-- Won Auctions Dropdown Button -->
+    <button class="dropdown-btn" onclick="toggleWonAuctions()">
+        Auctions Won
+        {% if won_auction_data %}
+            <span class="badge">{{ won_auction_data|length }}</span>
+        {% endif %}
+    </button>
+    
+    <!-- Won Auctions Dropdown Content -->
+    <div id="wonAuctionsDropdown" class="dropdown-content">
+        {% if won_auction_data %}
+            <h3 class="won-auctions-title">Auctions won by this account:</h3>
+            <div class="auction-container">
+                {% for auction in won_auction_data %}
+                <div class="auction-item">
+                    <h2>{{ auction.item_name }}</h2>
+                    <p><strong>Start Time:</strong> {{ auction.start_time }}</p>
+                    <p><strong>End Time:</strong> {{ auction.end_time }}</p>
+                    <p><strong>Winning Bid:</strong> ${{ auction.current_bid }}</p>
+                    <a href="{{ url_for('auction_page', auction_id=auction.id) }}">View Auction</a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-auctions-message">This account hasn't won any auctions yet.</p>
+        {% endif %}
+    </div>
+
     <a href="/" style="margin-top: 20px; text-decoration: none; color: #333; font-weight: bold;">← Back to Home</a>
 </body>
 </html>
