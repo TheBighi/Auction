@@ -61,10 +61,8 @@ def close_auctions():
 
     auctions_to_close = cursor.fetchall()
     for auction_id, current_bidder, end_time in auctions_to_close:
-        print("l")
         # If no bidder, set winner as "No winner"
         if current_bidder and current_bidder != '0':
-            print("ll")
             cursor.execute('''
                 UPDATE auctions
                 SET bid_winner = ?
@@ -279,9 +277,7 @@ def get_auction(auction_id):
 
 @app.route('/auction/<int:auction_id>')
 def auction_page(auction_id):
-    user_id = session.get('user_id') 
-    print("A")
-    
+    user_id = session.get('user_id')    
     auction = get_auction(auction_id)
     conn = sqlite3.connect("auctions.db")
     cursor = conn.cursor()
@@ -294,12 +290,8 @@ def auction_page(auction_id):
 
     if creator:
         creator = creator[0]  # Etuple
-        print(f"Creator: {creator}")
     else:
-        print("No data found")
         creator = None
-
-    print(f"Session ID: {user_id}")
 
     if auction:
         return render_template("auction.html", auction=auction, creator=creator, user_id=user_id, current_bidder=current_bidder)
@@ -311,7 +303,6 @@ def auction_page(auction_id):
 
 @app.route('/auction/<int:auction_id>', methods=['GET', 'POST'])
 def auction_detail(auction_id):
-    print("B")
     auction = get_auction(auction_id)
     user_id = session.get('user_id')
 
